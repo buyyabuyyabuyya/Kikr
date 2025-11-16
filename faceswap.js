@@ -54,13 +54,41 @@ export async function performFaceSwap(userImageUrl, kirkImageUrl) {
             );
         }
 
-        const createJson = await createResponse.json();
-        const taskId = createJson?.result?.task_id;
-        const taskCost = createJson?.result?.task_cost;
-        console.log('[FaceSwap] Task created:', taskId, 'cost:', taskCost);
+        const createJson = await createResponse.json().catch(() => null);
+        console.log('[FaceSwap] Create task response JSON:', JSON.stringify(createJson));
+
+        if (!createJson) {
+            throw new Error('VModel create task returned invalid JSON');
+        }
+
+        const code = createJson?.code;
+        const message = createJson?.message;
+        const createResult = createJson?.result;
+        const taskId = createResult?.task_id;
+        const taskCost = createResult?.task_cost;
+
+        console.log(
+            '[FaceSwap] Task created:',
+            taskId || 'null',
+            'cost:',
+            taskCost ?? 'null',
+            'code:',
+            code,
+            'message:',
+            JSON.stringify(message) || ''
+        );
+
+        if (code && code !== 200) {
+            throw new Error(
+                `VModel create task returned code ${code} with message ${JSON.stringify(message)}`,
+            );
+        }
 
         if (!taskId) {
-            throw new Error('VModel create task did not return task_id');
+            throw new Error(
+                'VModel create task did not return task_id; raw response: ' +
+                JSON.stringify(createJson)
+            );
         }
 
         const getTaskUrl = `https://api.vmodel.ai/api/tasks/v1/get/${taskId}`;
