@@ -101,5 +101,5 @@ client.on('interactionCreate', async (interaction) => {
         }
     }
 });
-
+//push tests
 client.login(process.env.DISCORD_TOKEN);
