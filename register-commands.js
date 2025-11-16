@@ -15,6 +15,30 @@ const commands = [
                 required: true
             }
         ]
+    },
+    {
+        name: 'meme',
+        description: 'Create a meme with top and bottom text.',
+        options: [
+            {
+                name: 'image',
+                description: 'The image for the meme',
+                type: ApplicationCommandOptionType.Attachment,
+                required: true
+            },
+            {
+                name: 'top_text',
+                description: 'The text to display at the top of the image',
+                type: ApplicationCommandOptionType.String,
+                required: true
+            },
+            {
+                name: 'bottom_text',
+                description: 'The text to display at the bottom of the image',
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
     }
 ];
 
