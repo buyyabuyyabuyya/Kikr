@@ -2,7 +2,6 @@ import { Client, GatewayIntentBits, AttachmentBuilder } from 'discord.js';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
 import http from 'http';
 import { v4 as uuidv4 } from 'uuid';
 import { performFaceSwap } from './faceswap.js';
@@ -37,25 +36,6 @@ if (!fs.existsSync('temp')) {
     fs.mkdirSync('temp');
 }
 
-/**
- * Download a file from a URL
- */
-function downloadFile(url, destPath) {
-    return new Promise((resolve, reject) => {
-        const file = fs.createWriteStream(destPath);
-        https.get(url, (response) => {
-            response.pipe(file);
-            file.on('finish', () => {
-                file.close();
-                resolve(destPath);
-            });
-        }).on('error', (err) => {
-            fs.unlink(destPath, () => {});
-            reject(err);
-        });
-    });
-}
-
 client.on('ready', () => {
     console.log(`✅ Logged in as ${client.user.tag}!`);
     console.log('🤖 Bot is ready to swap faces with Charlie Kirk!');
@@ -83,20 +63,24 @@ client.on('interactionCreate', async (interaction) => {
                 return;
             }
 
-            await interaction.editReply('🔄 Downloading your image...');
+            await interaction.editReply('🔄 Preparing your image for face swap...');
 
-            // Download the user's image
-            const userImagePath = path.join('temp', `user_${uuidv4()}${path.extname(attachment.name)}`);
-            await downloadFile(attachment.url, userImagePath);
+            const kirkImageUrl = process.env.KIRK_FACE_URL;
+            if (!kirkImageUrl) {
+                await interaction.editReply(
+                    '❌ Bot is misconfigured: KIRK_FACE_URL is not set in the environment.',
+                );
+                return;
+            }
 
-            await interaction.editReply('🔄 Swapping faces with Charlie Kirk... This may take up to 2 minutes!');
+            const userImageUrl = attachment.url;
+            await interaction.editReply('🔄 Swapping faces with Charlie Kirk... This may take up to 1 minute!');
 
-            // Perform face swap
-            const kirkImagePath = 'charlie-kirk-2025.jpg';
-            const resultPath = await performFaceSwap(userImagePath, kirkImagePath);
+            // Perform face swap via VModel API
+            const resultPath = await performFaceSwap(userImageUrl, kirkImageUrl);
 
             // Send result
-            const resultAttachment = new AttachmentBuilder(resultPath, { name: 'kirked.webp' });
+            const resultAttachment = new AttachmentBuilder(resultPath, { name: 'kirked.png' });
             await interaction.editReply({
                 content: '✅ Face swap complete! Here\'s your Charlie Kirk transformation:',
                 files: [resultAttachment]
@@ -105,7 +89,6 @@ client.on('interactionCreate', async (interaction) => {
             // Cleanup temporary files
             setTimeout(() => {
                 try {
-                    if (fs.existsSync(userImagePath)) fs.unlinkSync(userImagePath);
                     if (fs.existsSync(resultPath)) fs.unlinkSync(resultPath);
                 } catch (err) {
                     console.error('[Cleanup] Error:', err);
