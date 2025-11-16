@@ -43,6 +43,50 @@ export async function performFaceSwap(userImagePath, kirkImagePath) {
         await faceUploadInput.setInputFiles(kirkImagePath);
         await page.waitForTimeout(2000);
 
+        // Set up listener for /api/check_status BEFORE starting the job
+        console.log('[FaceSwap] Setting up result listener...');
+        const resultUrlPromise = new Promise((resolve, reject) => {
+            let settled = false;
+
+            const timeoutId = setTimeout(() => {
+                if (settled) return;
+                settled = true;
+                page.removeListener('response', onResponse);
+                reject(new Error('Timed out waiting for face swap result'));
+            }, 180000); // 3 minutes
+
+            const onResponse = async (response) => {
+                try {
+                    const url = response.url();
+                    if (!url.includes('/api/check_status')) return;
+
+                    const json = await response.json().catch(() => null);
+                    if (!json || !json.data) return;
+
+                    const { status, result_image, error } = json.data;
+                    console.log('[FaceSwap] /api/check_status =>', status, result_image || null, error || '');
+
+                    if (status === 2 && result_image) {
+                        let fullUrl = result_image;
+                        if (!fullUrl.startsWith('http')) {
+                            // Based on your logs: final image is served from art-global.faceai.art
+                            fullUrl = `https://art-global.faceai.art/${fullUrl}`;
+                        }
+
+                        if (settled) return;
+                        settled = true;
+                        clearTimeout(timeoutId);
+                        page.removeListener('response', onResponse);
+                        resolve(fullUrl);
+                    }
+                } catch (err) {
+                    console.warn('[FaceSwap] Error while parsing check_status response:', err.message);
+                }
+            };
+
+            page.on('response', onResponse);
+        });
+
         console.log('[FaceSwap] Starting face swap...');
         // Click the "Start face swapping" button
         const swapButton = await page.locator('button:has-text("Start face swapping")').first();
@@ -50,35 +94,7 @@ export async function performFaceSwap(userImagePath, kirkImagePath) {
         await swapButton.click();
 
         console.log('[FaceSwap] Waiting for result...');
-        let resultUrl = null;
-
-        // Try to capture the network response that serves the final face swap image
-        try {
-            const resultResponse = await page.waitForResponse((response) => {
-                const url = response.url();
-                const isFaceSwapAsset = url.includes('face-swap/') && !url.includes('upload_res') && !url.includes('logo');
-                return response.request().method() === 'GET' && isFaceSwapAsset;
-            }, { timeout: 180000 });
-            resultUrl = resultResponse.url();
-        } catch (err) {
-            console.warn('[FaceSwap] Network result not found within timeout, falling back to DOM lookup.');
-        }
-
-        // Fallback: look for the result element in the DOM
-        if (!resultUrl) {
-            try {
-                const resultElement = await page.waitForSelector('img[src*="face-swap/"], a[href*="face-swap/"]', { timeout: 30000 });
-                const tagName = await resultElement.evaluate(el => el.tagName.toLowerCase());
-                const url = tagName === 'img'
-                    ? await resultElement.getAttribute('src')
-                    : await resultElement.getAttribute('href');
-                if (url && !url.includes('logo')) {
-                    resultUrl = url;
-                }
-            } catch (fallbackErr) {
-                console.warn('[FaceSwap] DOM fallback did not find the result image either.');
-            }
-        }
+        const resultUrl = await resultUrlPromise;
 
         if (!resultUrl) {
             throw new Error('Could not capture result image URL');
@@ -86,21 +102,16 @@ export async function performFaceSwap(userImagePath, kirkImagePath) {
 
         console.log('[FaceSwap] Result URL:', resultUrl);
 
-        // Download the result image
-        const resultImageData = await page.evaluate(async (url) => {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const reader = new FileReader();
-            return new Promise((resolve) => {
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(blob);
-            });
-        }, resultUrl);
+        // Download the result image using Node fetch (avoids browser CORS issues)
+        const downloadResponse = await fetch(resultUrl);
+        if (!downloadResponse.ok) {
+            throw new Error(`Failed to download result image: ${downloadResponse.status} ${downloadResponse.statusText}`);
+        }
+        const arrayBuffer = await downloadResponse.arrayBuffer();
 
         // Save the result
         const resultPath = path.join('temp', `result_${uuidv4()}.webp`);
-        const base64Data = resultImageData.split(',')[1];
-        fs.writeFileSync(resultPath, Buffer.from(base64Data, 'base64'));
+        fs.writeFileSync(resultPath, Buffer.from(arrayBuffer));
 
         console.log('[FaceSwap] Result saved to:', resultPath);
         return resultPath;
