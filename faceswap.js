@@ -50,14 +50,36 @@ export async function performFaceSwap(userImagePath, kirkImagePath) {
         await swapButton.click();
 
         console.log('[FaceSwap] Waiting for result...');
-        // Wait for the actual face swap result request instead of any placeholder image
-        const resultResponse = await page.waitForResponse((response) => {
-            const url = response.url();
-            const isFaceSwapAsset = url.includes('face-swap/') && !url.includes('upload_res');
-            return response.request().method() === 'GET' && isFaceSwapAsset;
-        }, { timeout: 180000 });
+        let resultUrl = null;
 
-        const resultUrl = resultResponse.url();
+        // Try to capture the network response that serves the final face swap image
+        try {
+            const resultResponse = await page.waitForResponse((response) => {
+                const url = response.url();
+                const isFaceSwapAsset = url.includes('face-swap/') && !url.includes('upload_res') && !url.includes('logo');
+                return response.request().method() === 'GET' && isFaceSwapAsset;
+            }, { timeout: 180000 });
+            resultUrl = resultResponse.url();
+        } catch (err) {
+            console.warn('[FaceSwap] Network result not found within timeout, falling back to DOM lookup.');
+        }
+
+        // Fallback: look for the result element in the DOM
+        if (!resultUrl) {
+            try {
+                const resultElement = await page.waitForSelector('img[src*="face-swap/"], a[href*="face-swap/"]', { timeout: 30000 });
+                const tagName = await resultElement.evaluate(el => el.tagName.toLowerCase());
+                const url = tagName === 'img'
+                    ? await resultElement.getAttribute('src')
+                    : await resultElement.getAttribute('href');
+                if (url && !url.includes('logo')) {
+                    resultUrl = url;
+                }
+            } catch (fallbackErr) {
+                console.warn('[FaceSwap] DOM fallback did not find the result image either.');
+            }
+        }
+
         if (!resultUrl) {
             throw new Error('Could not capture result image URL');
         }
