@@ -22,6 +22,48 @@ export async function performFaceSwap(userImagePath, kirkImagePath) {
     const page = await context.newPage();
     
     try {
+        // Debug: log key network traffic to and from aifaceswap
+        page.on('request', (request) => {
+            const url = request.url();
+            const method = request.method();
+
+            if (url.includes('aifaceswap.io')) {
+                if (url.includes('/api/upload_file') || url.includes('/api/generate_face') || url.includes('/api/check_status')) {
+                    console.log('[FaceSwap][request]', method, url);
+                    try {
+                        const body = request.postData();
+                        if (body && body.length < 500) {
+                            console.log('[FaceSwap][request body]', body);
+                        } else if (body) {
+                            console.log('[FaceSwap][request body]', body.substring(0, 500) + '...');
+                        }
+                    } catch (err) {
+                        console.warn('[FaceSwap][request] Error reading body:', err.message);
+                    }
+                }
+            } else if (url.includes('face-swap/')) {
+                // Logs any direct GET to the final face-swap asset host
+                console.log('[FaceSwap][request asset]', method, url);
+            }
+        });
+
+        page.on('response', async (response) => {
+            const url = response.url();
+            const status = response.status();
+
+            if (url.includes('aifaceswap.io')) {
+                if (url.includes('/api/upload_file') || url.includes('/api/generate_face') || url.includes('/api/check_status')) {
+                    const headers = response.headers();
+                    const contentType = headers['content-type'] || headers['Content-Type'] || '';
+                    console.log('[FaceSwap][response]', status, url, 'ct=', contentType);
+                    // Important: do NOT read response.json() here, so the dedicated
+                    // check_status listener can consume the JSON body.
+                }
+            } else if (url.includes('face-swap/')) {
+                console.log('[FaceSwap][response asset]', status, url);
+            }
+        });
+
         console.log('[FaceSwap] Navigating to aifaceswap.io...');
         await page.goto('https://aifaceswap.io/#face-swap-playground', {
             waitUntil: 'networkidle',
