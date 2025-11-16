@@ -50,24 +50,16 @@ export async function performFaceSwap(userImagePath, kirkImagePath) {
         await swapButton.click();
 
         console.log('[FaceSwap] Waiting for result...');
-        // Wait for the result image to appear (this might take 10-60 seconds)
-        // The result appears in an img tag or as a download link
-        const resultImage = await page.waitForSelector('img[src*="art-global.faceai.art"], img[src*="face-swap"], a[href*="face-swap"]', {
-            timeout: 120000 // 2 minutes max wait
-        });
+        // Wait for the actual face swap result request instead of any placeholder image
+        const resultResponse = await page.waitForResponse((response) => {
+            const url = response.url();
+            const isFaceSwapAsset = url.includes('face-swap/') && !url.includes('upload_res');
+            return response.request().method() === 'GET' && isFaceSwapAsset;
+        }, { timeout: 180000 });
 
-        // Get the result image URL
-        let resultUrl;
-        const tagName = await resultImage.evaluate(el => el.tagName.toLowerCase());
-        
-        if (tagName === 'img') {
-            resultUrl = await resultImage.getAttribute('src');
-        } else if (tagName === 'a') {
-            resultUrl = await resultImage.getAttribute('href');
-        }
-
+        const resultUrl = resultResponse.url();
         if (!resultUrl) {
-            throw new Error('Could not find result image URL');
+            throw new Error('Could not capture result image URL');
         }
 
         console.log('[FaceSwap] Result URL:', resultUrl);
