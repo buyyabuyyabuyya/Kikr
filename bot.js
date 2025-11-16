@@ -1,0 +1,122 @@
+import { Client, GatewayIntentBits, AttachmentBuilder } from 'discord.js';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
+import http from 'http';
+import { v4 as uuidv4 } from 'uuid';
+import { performFaceSwap } from './faceswap.js';
+
+dotenv.config();
+
+// Health check endpoint for Render
+const PORT = process.env.PORT || 3000;
+const server = http.createServer((req, res) => {
+    if (req.url === '/health' || req.url === '/') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('Bot is running!');
+    } else {
+        res.writeHead(404);
+        res.end('Not found');
+    }
+});
+
+server.listen(PORT, () => {
+    console.log(`🌐 Health check server running on port ${PORT}`);
+});
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+    ]
+});
+
+// Ensure temp directory exists
+if (!fs.existsSync('temp')) {
+    fs.mkdirSync('temp');
+}
+
+/**
+ * Download a file from a URL
+ */
+function downloadFile(url, destPath) {
+    return new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(destPath);
+        https.get(url, (response) => {
+            response.pipe(file);
+            file.on('finish', () => {
+                file.close();
+                resolve(destPath);
+            });
+        }).on('error', (err) => {
+            fs.unlink(destPath, () => {});
+            reject(err);
+        });
+    });
+}
+
+client.on('ready', () => {
+    console.log(`✅ Logged in as ${client.user.tag}!`);
+    console.log('🤖 Bot is ready to swap faces with Charlie Kirk!');
+});
+
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === 'kirk') {
+        await interaction.deferReply();
+
+        try {
+            // Get the uploaded image
+            const attachment = interaction.options.getAttachment('image');
+            
+            if (!attachment) {
+                await interaction.editReply('❌ Please provide an image!');
+                return;
+            }
+
+            // Validate image type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(attachment.contentType)) {
+                await interaction.editReply('❌ Please upload a valid image (JPEG, PNG, or WebP)!');
+                return;
+            }
+
+            await interaction.editReply('🔄 Downloading your image...');
+
+            // Download the user's image
+            const userImagePath = path.join('temp', `user_${uuidv4()}${path.extname(attachment.name)}`);
+            await downloadFile(attachment.url, userImagePath);
+
+            await interaction.editReply('🔄 Swapping faces with Charlie Kirk... This may take up to 2 minutes!');
+
+            // Perform face swap
+            const kirkImagePath = 'charlie-kirk-2025.jpg';
+            const resultPath = await performFaceSwap(userImagePath, kirkImagePath);
+
+            // Send result
+            const resultAttachment = new AttachmentBuilder(resultPath, { name: 'kirked.webp' });
+            await interaction.editReply({
+                content: '✅ Face swap complete! Here\'s your Charlie Kirk transformation:',
+                files: [resultAttachment]
+            });
+
+            // Cleanup temporary files
+            setTimeout(() => {
+                try {
+                    if (fs.existsSync(userImagePath)) fs.unlinkSync(userImagePath);
+                    if (fs.existsSync(resultPath)) fs.unlinkSync(resultPath);
+                } catch (err) {
+                    console.error('[Cleanup] Error:', err);
+                }
+            }, 5000);
+
+        } catch (error) {
+            console.error('[Bot] Error:', error);
+            await interaction.editReply('❌ An error occurred while processing your image. Please try again later.');
+        }
+    }
+});
+
+client.login(process.env.DISCORD_TOKEN);

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: kirk-discord-bot
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+    autoDeploy: true

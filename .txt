@@ -1,0 +1,265 @@
+ok when i upload the Original Face: this is the HTML code i see:
+<div class="d-flex flex-row gap-5 justify-content-center align-items-center"><div class="w-50"><div class="sourceImage" id="sourceImage"><!--v-if--><div class="el-upload el-upload--text is-drag" tabindex="0"><div class="el-upload-dragger"><!--v-if--><div class="d-flex align-items-center justify-content-center flex-column" style="height: 170px;"><i class="el-icon el-icon--upload"><i class="fs-4x bi bi-person-bounding-box"></i></i><div class="el-upload__text fw-bold"> Drop file here or<div class="btn btn-outline btn-outline-dashed btn-outline-primary btn-sm btn-active-light-primary mt-2"> click to upload</div></div></div><span class="fs-2 position-absolute top-0 start-100 translate-middle badge badge-circle badge-danger" style="display: none;"><i class="bi-x"></i></span></div><input class="el-upload__input" name="file" accept="image/jpeg,image/png,image/jpg,image/webp" type="file"></div><!--v-if--><!--v-if--></div><p class="text-center mt-5"> Original image </p></div><div class="w-50"><div class="faceImage" id="faceImage"><!--v-if--><div class="el-upload el-upload--text is-drag" tabindex="0"><div class="el-upload-dragger"><!--v-if--><div class="d-flex align-items-center justify-content-center flex-column rounded overflow-hidden" style="height: 170px;"><div class="mw-100 mh-100 ratio ratio-1x1 overflow-hidden border rounded-circle border-1 border-dashed border-light-subtle"><img class="w-100 h-100 object-fit-contain" id="face-Image" src="https://temp.aifaceswap.io/aifaceswap/upload_res/2025-11-16/12f04277954a8cf880e2b0c9955bcc03.jpg" style="object-position: center center;"></div><span class="fs-2 position-absolute top-0 start-100 translate-middle badge badge-circle badge-danger"><i class="bi-x"></i></span></div></div><input class="el-upload__input" name="file" accept="image/jpeg,image/png,image/jpg,image/webp" type="file"></div><!--v-if--><!--v-if--></div><p class="text-center mt-5"> Face image </p></div></div>
+
+
+and in the Network tab its just a long URL data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA...............
+
+
+and after that another requets will be like:
+Request URL
+blob:https://aifaceswap.io/14227edf-50fc-42cf-bfb7-0a4a073737cd
+Request Method
+GET
+Status Code
+200 OK
+Referrer Policy
+strict-origin-when-cross-origin
+
+
+and this HTML code is for both Origiail Image and the other one is Face Image, 
+
+and this is the button to press on to Start the Face Swap:
+<button aria-disabled="true" type="button" class="el-button el-button--primary is-disabled w-100 py-6" disabled=""><!--v-if--><span class="">Start face swapping <!----></span></button>
+
+
+next part in the network tab will be:
+Request URL
+https://aifaceswap.io/api/upload_file
+Request Method
+POST
+Status Code
+200 OK
+Remote Address
+[2606:4700:20::ac43:4910]:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+payload:
+{"file_name":"8f9c2b34cc582eec5855b23f571435c0.jpg","type":"image"}
+
+responoce:
+{
+    "code": 200,
+    "data": {
+        "url": "https://yimeta-ai-face-swap.oss-us-west-1.aliyuncs.com/aifaceswap/upload_res/2025-11-16/8f9c2b34cc582eec5855b23f571435c0.jpg?OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=NIKsWBsjN4e4N04xNb2P3wQ0%2B4Q%3D"
+    },
+    "extra_data": {},
+    "message": "OK"
+}
+
+
+next:
+Request URL
+https://yimeta-ai-face-swap.oss-us-west-1.aliyuncs.com/aifaceswap/upload_res/2025-11-16/8f9c2b34cc582eec5855b23f571435c0.jpg?OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=NIKsWBsjN4e4N04xNb2P3wQ0%2B4Q%3D
+Request Method
+OPTIONS
+Status Code
+200 OK
+Remote Address
+47.88.111.64:443
+Referrer Policy
+strict-origin-when-cross-origin
+OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=NIKsWBsjN4e4N04xNb2P3wQ0%2B4Q%3D
+
+
+
+
+
+next:
+Request URL
+https://yimeta-ai-face-swap.oss-us-west-1.aliyuncs.com/aifaceswap/upload_res/2025-11-16/8f9c2b34cc582eec5855b23f571435c0.jpg?OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=NIKsWBsjN4e4N04xNb2P3wQ0%2B4Q%3D
+Request Method
+PUT
+Status Code
+200 OK
+Remote Address
+47.88.111.64:443
+Referrer Policy
+strict-origin-when-cross-origin
+OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=NIKsWBsjN4e4N04xNb2P3wQ0%2B4Q%3D
+
+
+
+Request URL
+https://temp.aifaceswap.io/aifaceswap/upload_res/2025-11-16/8f9c2b34cc582eec5855b23f571435c0.jpg
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+[2606:4700:20::ac43:4910]:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+
+
+
+
+Next :
+Request URL
+https://aifaceswap.io/api/upload_file
+Request Method
+POST
+Status Code
+200 OK
+Remote Address
+[2606:4700:20::ac43:4910]:443
+Referrer Policy
+strict-origin-when-cross-origin
+{"file_name":"12f04277954a8cf880e2b0c9955bcc03.jpg","type":"image"}
+
+{
+    "code": 200,
+    "data": {
+        "url": "https://yimeta-ai-face-swap.oss-us-west-1.aliyuncs.com/aifaceswap/upload_res/2025-11-16/12f04277954a8cf880e2b0c9955bcc03.jpg?OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=%2Bd4i1eNlbH%2Fz7%2F3qjTMZWOMfdzE%3D"
+    },
+    "extra_data": {},
+    "message": "OK"
+}
+
+Request URL
+https://yimeta-ai-face-swap.oss-us-west-1.aliyuncs.com/aifaceswap/upload_res/2025-11-16/12f04277954a8cf880e2b0c9955bcc03.jpg?OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=%2Bd4i1eNlbH%2Fz7%2F3qjTMZWOMfdzE%3D
+Request Method
+OPTIONS
+Status Code
+200 OK
+Remote Address
+47.88.111.64:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=%2Bd4i1eNlbH%2Fz7%2F3qjTMZWOMfdzE%3D
+
+
+Request URL
+https://yimeta-ai-face-swap.oss-us-west-1.aliyuncs.com/aifaceswap/upload_res/2025-11-16/12f04277954a8cf880e2b0c9955bcc03.jpg?OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=%2Bd4i1eNlbH%2Fz7%2F3qjTMZWOMfdzE%3D
+Request Method
+PUT
+Status Code
+200 OK
+Remote Address
+47.88.111.64:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+OSSAccessKeyId=LTAI5tRPSBvjUDnf129nS4Au&Expires=1763263105&Signature=%2Bd4i1eNlbH%2Fz7%2F3qjTMZWOMfdzE%3D
+
+
+
+
+
+Request URL
+https://temp.aifaceswap.io/aifaceswap/upload_res/2025-11-16/12f04277954a8cf880e2b0c9955bcc03.jpg
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+[2606:4700:20::ac43:4910]:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+
+
+
+
+Request URL
+https://aifaceswap.io/api/generate_face
+Request Method
+POST
+Status Code
+200 OK
+Remote Address
+[2606:4700:20::ac43:4910]:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+
+{"request_type":2,"data":"VYY4R8AoiEaO7SYQMabxj/Vqglalps7wPJn8h3xI9L+56YrnBKJ06bS3DeiWRu4NAu1RtksMWL+OmixqfYChHuGy2g1xygXsFCEALX424N9nYVzqk3Nmt42va9AIV/n1HRPGVxhHyZaWx3RnKx/+Az+J86I4WF+0yOJ4syyXHuRLwyhXsJ4DAUvIhph711KwVbPlKl3AIxVm5u91jFU6e48Boy8hE+pU/rVUk+YwlaExBvDTl/QDeOydTWrqXtuK6sp2bzRYnsgrcQ6fq/9X5T3SOTk="}
+
+
+
+{
+    "code": 200,
+    "data": {
+        "face_image": "aifaceswap/upload_res/2025-11-16/12f04277954a8cf880e2b0c9955bcc03.jpg",
+        "queue_len": 1,
+        "rank": 1,
+        "source_image": "aifaceswap/upload_res/2025-11-16/8f9c2b34cc582eec5855b23f571435c0.jpg",
+        "task_id": "3be56643071e16b415985852c023c1b8",
+        "will_consume": false
+    },
+    "extra_data": {},
+    "message": "OK"
+}
+Request URL
+https://aifaceswap.io/api/check_status
+Request Method
+POST
+Status Code
+200 OK
+Remote Address
+[2606:4700:20::ac43:4910]:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+{"task_id":"3be56643071e16b415985852c023c1b8","nonce":"7ff32dbb6115d3f54b127b7e43f3c34a"}
+
+{
+    "code": 200,
+    "data": {
+        "error": "",
+        "queue_len": 3,
+        "rank": 0,
+        "result_image": null,
+        "status": 1
+    },
+    "extra_data": {},
+    "message": "OK"
+}
+Request URL
+https://aifaceswap.io/api/check_status
+Request Method
+POST
+Status Code
+200 OK
+Remote Address
+[2606:4700:20::ac43:4910]:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+
+
+{"task_id":"3be56643071e16b415985852c023c1b8","nonce":"7ff32dbb6115d3f54b127b7e43f3c34a"}
+
+
+{
+    "code": 200,
+    "data": {
+        "error": "",
+        "queue_len": 3,
+        "rank": 0,
+        "result_image": "face-swap/808858c790f5b9fc41c97401828346e2.webp",
+        "status": 2
+    },
+    "extra_data": {},
+    "message": "OK"
+}
+
+
+
+
+Final Network requets with the new face:
+Request URL
+https://art-global.faceai.art/face-swap/808858c790f5b9fc41c97401828346e2.webp
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+[2606:4700:3036::ac43:807a]:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+
+
