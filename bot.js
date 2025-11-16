@@ -66,9 +66,11 @@ client.on('interactionCreate', async (interaction) => {
             await interaction.editReply('🔄 Preparing your image for face swap...');
 
             const kirkImageUrl = process.env.KIRK_FACE_URL;
-            if (!kirkImageUrl) {
+            const faceFusionUrl = process.env.FACEFUSION_URL;
+
+            if (!kirkImageUrl || !faceFusionUrl) {
                 await interaction.editReply(
-                    '❌ Bot is misconfigured: KIRK_FACE_URL is not set in the environment.',
+                    '❌ Bot is misconfigured: `KIRK_FACE_URL` and `FACEFUSION_URL` must be set in the environment.',
                 );
                 return;
             }
@@ -76,7 +78,7 @@ client.on('interactionCreate', async (interaction) => {
             const userImageUrl = attachment.url;
             await interaction.editReply('🔄 Swapping faces with Charlie Kirk... This may take up to 1 minute!');
 
-            // Perform face swap via VModel API
+            // Perform face swap via self-hosted FaceFusion backend
             const resultPath = await performFaceSwap(userImageUrl, kirkImageUrl);
 
             // Send result

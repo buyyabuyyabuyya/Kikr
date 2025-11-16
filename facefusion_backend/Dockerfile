@@ -10,9 +10,6 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install FaceFusion (includes model download step at runtime)
-RUN pip install --no-cache-dir facefusion==2.3.0
-
 # Copy server code
 COPY server.py ./
 

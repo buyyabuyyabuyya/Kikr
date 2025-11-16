@@ -1,0 +1,94 @@
+2025-11-16T16:30:10.127607073Z #13 preparing build cache for export
+2025-11-16T16:32:31.442224249Z #13 writing cache image manifest sha256:47d165e48816419fed76fcfede72a8bea492c953633163c9b053ecb92881ba48 0.0s done
+2025-11-16T16:32:31.442249819Z #13 DONE 141.2s
+2025-11-16T16:32:32.176507185Z Pushing image to registry...
+2025-11-16T16:38:37.441297068Z Upload succeeded
+2025-11-16T16:38:39.909987174Z ==> Deploying...
+2025-11-16T16:43:26.205660064Z ==> No open ports detected, continuing to scan...
+2025-11-16T16:43:26.245699955Z 2025-11-16 16:43:26.244901831 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card0/device/vendor"
+2025-11-16T16:43:26.309232447Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2025-11-16T16:43:26.806077325Z 
+2025-11-16T16:43:26.806102836Z A module that was compiled using NumPy 1.x cannot be run in
+2025-11-16T16:43:26.806106996Z NumPy 2.2.6 as it may crash. To support both 1.x and 2.x
+2025-11-16T16:43:26.806110206Z versions of NumPy, modules must be compiled with NumPy 2.0.
+2025-11-16T16:43:26.806113916Z Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+2025-11-16T16:43:26.806116846Z 
+2025-11-16T16:43:26.806120286Z If you are a user of the module, the easiest solution will be to
+2025-11-16T16:43:26.806123606Z downgrade to 'numpy<2' or try to upgrade the affected module.
+2025-11-16T16:43:26.806126986Z We expect that some modules will need time to support NumPy 2.
+2025-11-16T16:43:26.806130067Z 
+2025-11-16T16:43:26.806133607Z Traceback (most recent call last):  File "/app/server.py", line 3, in <module>
+2025-11-16T16:43:26.806137577Z     from facefusionlib import swapper
+2025-11-16T16:43:26.806142877Z   File "/usr/local/lib/python3.10/site-packages/facefusionlib/swapper.py", line 7, in <module>
+2025-11-16T16:43:26.806146117Z     from facefusion.core import run
+2025-11-16T16:43:26.806149387Z   File "/usr/local/lib/python3.10/site-packages/facefusion/core.py", line 14, in <module>
+2025-11-16T16:43:26.806152337Z     from facefusion.face_analyser import get_one_face, get_average_face
+2025-11-16T16:43:26.806155938Z   File "/usr/local/lib/python3.10/site-packages/facefusion/face_analyser.py", line 4, in <module>
+2025-11-16T16:43:26.806159047Z     import cv2
+2025-11-16T16:43:26.806162348Z   File "/usr/local/lib/python3.10/site-packages/cv2/__init__.py", line 181, in <module>
+2025-11-16T16:43:26.806165548Z     bootstrap()
+2025-11-16T16:43:26.806169148Z   File "/usr/local/lib/python3.10/site-packages/cv2/__init__.py", line 153, in bootstrap
+2025-11-16T16:43:26.806172498Z     native_module = importlib.import_module("cv2")
+2025-11-16T16:43:26.806175608Z   File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+2025-11-16T16:43:26.806182828Z     return _bootstrap._gcd_import(name[level:], package, level)
+2025-11-16T16:43:26.806186328Z AttributeError: _ARRAY_API not found
+2025-11-16T16:43:26.80623736Z Traceback (most recent call last):
+2025-11-16T16:43:26.80624571Z   File "/app/server.py", line 3, in <module>
+2025-11-16T16:43:26.806321692Z     from facefusionlib import swapper
+2025-11-16T16:43:26.806328912Z   File "/usr/local/lib/python3.10/site-packages/facefusionlib/swapper.py", line 7, in <module>
+2025-11-16T16:43:26.806409355Z     from facefusion.core import run
+2025-11-16T16:43:26.806416465Z   File "/usr/local/lib/python3.10/site-packages/facefusion/core.py", line 14, in <module>
+2025-11-16T16:43:26.806553919Z     from facefusion.face_analyser import get_one_face, get_average_face
+2025-11-16T16:43:26.806561169Z   File "/usr/local/lib/python3.10/site-packages/facefusion/face_analyser.py", line 4, in <module>
+2025-11-16T16:43:26.806626741Z     import cv2
+2025-11-16T16:43:26.806681733Z   File "/usr/local/lib/python3.10/site-packages/cv2/__init__.py", line 181, in <module>
+2025-11-16T16:43:26.806868288Z     bootstrap()
+2025-11-16T16:43:26.806881299Z   File "/usr/local/lib/python3.10/site-packages/cv2/__init__.py", line 153, in bootstrap
+2025-11-16T16:43:26.806894509Z     native_module = importlib.import_module("cv2")
+2025-11-16T16:43:26.806897789Z   File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+2025-11-16T16:43:26.807002732Z     return _bootstrap._gcd_import(name[level:], package, level)
+2025-11-16T16:43:26.807032463Z ImportError: numpy.core.multiarray failed to import
+2025-11-16T16:43:29.571119601Z ==> Exited with status 1
+2025-11-16T16:43:29.590201819Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-11-16T16:43:30.199106408Z 2025-11-16 16:43:30.198979893 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card0/device/vendor"
+2025-11-16T16:43:30.405923908Z 
+2025-11-16T16:43:30.405950978Z A module that was compiled using NumPy 1.x cannot be run in
+2025-11-16T16:43:30.405955849Z NumPy 2.2.6 as it may crash. To support both 1.x and 2.x
+2025-11-16T16:43:30.405958969Z versions of NumPy, modules must be compiled with NumPy 2.0.
+2025-11-16T16:43:30.405962249Z Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+2025-11-16T16:43:30.405964419Z 
+2025-11-16T16:43:30.405967179Z If you are a user of the module, the easiest solution will be to
+2025-11-16T16:43:30.405969699Z downgrade to 'numpy<2' or try to upgrade the affected module.
+2025-11-16T16:43:30.405971959Z We expect that some modules will need time to support NumPy 2.
+2025-11-16T16:43:30.405974139Z 
+2025-11-16T16:43:30.405976539Z Traceback (most recent call last):  File "/app/server.py", line 3, in <module>
+2025-11-16T16:43:30.405979819Z     from facefusionlib import swapper
+2025-11-16T16:43:30.405983609Z   File "/usr/local/lib/python3.10/site-packages/facefusionlib/swapper.py", line 7, in <module>
+2025-11-16T16:43:30.405986759Z     from facefusion.core import run
+2025-11-16T16:43:30.405989599Z   File "/usr/local/lib/python3.10/site-packages/facefusion/core.py", line 14, in <module>
+2025-11-16T16:43:30.40599221Z     from facefusion.face_analyser import get_one_face, get_average_face
+2025-11-16T16:43:30.40599575Z   File "/usr/local/lib/python3.10/site-packages/facefusion/face_analyser.py", line 4, in <module>
+2025-11-16T16:43:30.40599842Z     import cv2
+2025-11-16T16:43:30.40600081Z   File "/usr/local/lib/python3.10/site-packages/cv2/__init__.py", line 181, in <module>
+2025-11-16T16:43:30.40600295Z     bootstrap()
+2025-11-16T16:43:30.40600514Z   File "/usr/local/lib/python3.10/site-packages/cv2/__init__.py", line 153, in bootstrap
+2025-11-16T16:43:30.40600727Z     native_module = importlib.import_module("cv2")
+2025-11-16T16:43:30.40600935Z   File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+2025-11-16T16:43:30.40601137Z     return _bootstrap._gcd_import(name[level:], package, level)
+2025-11-16T16:43:30.40601339Z AttributeError: _ARRAY_API not found
+2025-11-16T16:43:30.406165575Z Traceback (most recent call last):
+2025-11-16T16:43:30.406173265Z   File "/app/server.py", line 3, in <module>
+2025-11-16T16:43:30.406176395Z     from facefusionlib import swapper
+2025-11-16T16:43:30.406180365Z   File "/usr/local/lib/python3.10/site-packages/facefusionlib/swapper.py", line 7, in <module>
+2025-11-16T16:43:30.406188675Z     from facefusion.core import run
+2025-11-16T16:43:30.406207246Z   File "/usr/local/lib/python3.10/site-packages/facefusion/core.py", line 14, in <module>
+2025-11-16T16:43:30.406303279Z     from facefusion.face_analyser import get_one_face, get_average_face
+2025-11-16T16:43:30.406308729Z   File "/usr/local/lib/python3.10/site-packages/facefusion/face_analyser.py", line 4, in <module>
+2025-11-16T16:43:30.406385351Z     import cv2
+2025-11-16T16:43:30.406402191Z   File "/usr/local/lib/python3.10/site-packages/cv2/__init__.py", line 181, in <module>
+2025-11-16T16:43:30.406598647Z     bootstrap()
+2025-11-16T16:43:30.406606188Z   File "/usr/local/lib/python3.10/site-packages/cv2/__init__.py", line 153, in bootstrap
+2025-11-16T16:43:30.40669734Z     native_module = importlib.import_module("cv2")
+2025-11-16T16:43:30.40670529Z   File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+2025-11-16T16:43:30.406810043Z     return _bootstrap._gcd_import(name[level:], package, level)
+2025-11-16T16:43:30.406825534Z ImportError: numpy.core.multiarray failed to import

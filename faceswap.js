@@ -3,169 +3,70 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Performs face swap using VModel Photo Face Swap API
- * @param {string} userImageUrl - HTTPS URL of the user's image
- * @param {string} kirkImageUrl - HTTPS URL of Charlie Kirk's image
- * @returns {Promise<string>} - Path to the result image
+ * Performs face swap using the self-hosted FaceFusion backend.
+ * @param {string} userImageUrl - HTTPS URL of the user's image (the target).
+ * @param {string} kirkImageUrl - HTTPS URL of Charlie Kirk's image (the face source).
+ * @returns {Promise<string>} - Local path to the saved result image.
  */
-const VMODEL_API_TOKEN = process.env.VMODEL_API_TOKEN;
-const VMODEL_FACE_SWAP_VERSION =
-    process.env.VMODEL_FACE_SWAP_VERSION ||
-    'a3c8d261fd14126eececf9812b52b40811e9ed557ccc5706452888cdeeebc0b6';
-
 export async function performFaceSwap(userImageUrl, kirkImageUrl) {
-    if (!VMODEL_API_TOKEN) {
-        throw new Error('VMODEL_API_TOKEN is not set');
+    const faceFusionUrl = process.env.FACEFUSION_URL;
+
+    if (!faceFusionUrl) {
+        throw new Error('FACEFUSION_URL environment variable is not set.');
     }
 
-    if (!kirkImageUrl) {
-        throw new Error('KIRK_FACE_URL is not set');
-    }
-
-    if (!userImageUrl) {
-        throw new Error('userImageUrl is required');
-    }
+    console.log(`[FaceSwap] Sending request to FaceFusion backend at ${faceFusionUrl}`);
 
     try {
-        console.log('[FaceSwap] Creating VModel task...');
-
-        const createResponse = await fetch('https://api.vmodel.ai/api/tasks/v1/create', {
+        // 1. Call the backend API to perform the swap
+        const response = await fetch(`${faceFusionUrl}/swap`, {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${VMODEL_API_TOKEN}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                version: VMODEL_FACE_SWAP_VERSION,
-                input: {
-                    // swap_image: the face you want to apply
-                    swap_image: kirkImageUrl,
-                    // target_image: the original user image
-                    target_image: userImageUrl,
-                    disable_safety_checker: false,
-                },
+                target_url: userImageUrl,
+                face_url: kirkImageUrl,
             }),
+            timeout: 180000, // 3 minute timeout
         });
 
-        if (!createResponse.ok) {
-            const text = await createResponse.text().catch(() => '');
-            throw new Error(
-                `Failed to create VModel task: ${createResponse.status} ${createResponse.statusText} ${text}`,
-            );
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`FaceFusion backend failed with status ${response.status}: ${errorBody}`);
         }
 
-        const createJson = await createResponse.json().catch(() => null);
-        console.log('[FaceSwap] Create task response JSON:', JSON.stringify(createJson));
+        const data = await response.json();
+        const resultUrl = data.result_url;
 
-        if (!createJson) {
-            throw new Error('VModel create task returned invalid JSON');
+        if (!resultUrl) {
+            throw new Error('FaceFusion backend did not return a result_url.');
         }
 
-        const code = createJson?.code;
-        const message = createJson?.message;
-        const createResult = createJson?.result;
-        const taskId = createResult?.task_id;
-        const taskCost = createResult?.task_cost;
+        console.log(`[FaceSwap] Got result URL: ${resultUrl}`);
 
-        console.log(
-            '[FaceSwap] Task created:',
-            taskId || 'null',
-            'cost:',
-            taskCost ?? 'null',
-            'code:',
-            code,
-            'message:',
-            JSON.stringify(message) || ''
-        );
-
-        if (code && code !== 200) {
-            throw new Error(
-                `VModel create task returned code ${code} with message ${JSON.stringify(message)}`,
-            );
-        }
-
-        if (!taskId) {
-            throw new Error(
-                'VModel create task did not return task_id; raw response: ' +
-                JSON.stringify(createJson)
-            );
-        }
-
-        const getTaskUrl = `https://api.vmodel.ai/api/tasks/v1/get/${taskId}`;
-        const startTime = Date.now();
-        let outputUrl = null;
-
-        while (true) {
-            const getResponse = await fetch(getTaskUrl, {
-                headers: {
-                    Authorization: `Bearer ${VMODEL_API_TOKEN}`,
-                },
-            });
-
-            if (!getResponse.ok) {
-                const text = await getResponse.text().catch(() => '');
-                throw new Error(
-                    `Failed to get VModel task status: ${getResponse.status} ${getResponse.statusText} ${text}`,
-                );
-            }
-
-            const statusJson = await getResponse.json();
-            const result = statusJson?.result;
-            const status = result?.status;
-            const error = result?.error;
-            const output = result?.output;
-
-            console.log('[FaceSwap] Task status:', status, 'error:', error || '');
-
-            if (status === 'succeeded') {
-                if (Array.isArray(output) && output.length > 0) {
-                    outputUrl = output[0];
-                    break;
-                }
-                throw new Error('VModel task succeeded but no output URL was returned');
-            }
-
-            if (status === 'failed' || status === 'canceled') {
-                throw new Error(error || `VModel task ${status}`);
-            }
-
-            if (Date.now() - startTime > 180000) {
-                throw new Error('Timed out waiting for VModel task to complete');
-            }
-
-            // starting / processing -> wait and poll again
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-        }
-
-        if (!outputUrl) {
-            throw new Error('VModel did not return an output image URL');
-        }
-
-        console.log('[FaceSwap] Downloading result from:', outputUrl);
-
-        const downloadResponse = await fetch(outputUrl, {
-            headers: {
-                // VModel requires auth header to download result files
-                Authorization: `Bearer ${VMODEL_API_TOKEN}`,
-            },
-        });
-
+        // 2. Download the resulting image
+        const downloadResponse = await fetch(resultUrl);
         if (!downloadResponse.ok) {
-            throw new Error(
-                `Failed to download result image: ${downloadResponse.status} ${downloadResponse.statusText}`,
-            );
+            throw new Error(`Failed to download result image: ${downloadResponse.statusText}`);
         }
 
         const arrayBuffer = await downloadResponse.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-        // Save the result
-        const resultPath = path.join('temp', `result_${uuidv4()}.png`);
-        fs.writeFileSync(resultPath, Buffer.from(arrayBuffer));
+        // 3. Save the image to a temporary file
+        const tempDir = 'temp';
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir);
+        }
+        const resultPath = path.join(tempDir, `result-${uuidv4()}.png`);
+        fs.writeFileSync(resultPath, buffer);
 
-        console.log('[FaceSwap] Result saved to:', resultPath);
+        console.log(`[FaceSwap] Result saved to: ${resultPath}`);
         return resultPath;
+
     } catch (error) {
-        console.error('[FaceSwap] Error:', error.message);
-        throw error;
+        console.error('[FaceSwap] An error occurred:', error.message);
+        throw error; // Re-throw the error to be caught by the bot
     }
 }

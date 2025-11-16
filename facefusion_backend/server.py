@@ -1,6 +1,7 @@
 import os
 import uuid
-import subprocess
+from facefusionlib import swapper
+from facefusionlib.swapper import DeviceProvider
 import tempfile
 import shutil
 from flask import Flask, request, jsonify, send_from_directory, abort
@@ -38,18 +39,16 @@ def swap_faces():
         output_filename = f"swap_{uuid.uuid4().hex}.png"
         output_path = os.path.join(app.static_folder, output_filename)
 
-        # Run FaceFusion CLI
-        cmd = [
-            "facefusion",
-            "--source", source_path,
-            "--target", face_path,
-            "--output", output_path,
-            "--execution-provider", "cpu",
-            "--keep-fps"
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            return jsonify({"error": "FaceFusion failed", "details": result.stderr}), 500
+        try:
+            swapper.swap_face(
+                source_paths=[source_path],
+                target_path=face_path,
+                output_path=output_path,
+                provider=DeviceProvider.CPU,
+                skip_nsfw=True,
+            )
+        except Exception as e:
+            return jsonify({"error": "FaceFusion failed", "details": str(e)}), 500
 
         public_url = request.host_url.rstrip("/") + "/static/" + output_filename
         return jsonify({"result_url": public_url})
